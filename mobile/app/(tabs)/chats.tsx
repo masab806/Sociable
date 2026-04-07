@@ -1,19 +1,21 @@
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, Pressable } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SearchIcon, UserCircle2 } from 'lucide-react-native'
+import { router } from 'expo-router';
+
 
 const CHAT_DATA = [
-    { id: '1', name: 'Alex Rivers', message: 'See you at the gym later?', time: '4:15 PM' },
-    { id: '2', name: 'Sarah Chen', message: 'The React Native docs are updated!', time: 'Yesterday' },
-    { id: '3', name: 'Design Team', message: 'New Figma link is in the thread.', time: 'Monday' },
-    { id: '4', name: 'University Group', message: 'When do classes start?', time: 'Mar 24' },
+    { id: '1', name: '143', message: 'See ', time: '2:00 PM' },
+    { id: '2', name: '456456', message: 'Haalo', time: 'Yesterday' },
+    { id: '3', name: 'D', message: 'haaaloooo', time: 'Today' },
+    { id: '4', name: '546456456', message: 'halo', time: 'Mar 24' },
 ];
 
 const Chats = () => {
 
     const renderChatItem = ({ item }) => (
-        <TouchableOpacity style={styles.chatItem}>
+        <Pressable onPress={()=> router.push("/(tabs)/conversation")} style={styles.chatItem}>
             <View style={styles.avatarPlaceholder}>
                 <UserCircle2 color="#FFB59C" size={40} />
             </View>
@@ -26,7 +28,7 @@ const Chats = () => {
                     {item.message}
                 </Text>
             </View>
-        </TouchableOpacity>
+        </Pressable>
     );
 
     return (
@@ -46,7 +48,7 @@ const Chats = () => {
                     <SearchIcon style={{ marginRight: 10 }} color="#FFB59C" />
                 </View>
             </View>
-
+            
             <FlatList
                 data={CHAT_DATA}
                 keyExtractor={(item) => item.id}
