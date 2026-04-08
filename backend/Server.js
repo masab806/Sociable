@@ -13,6 +13,6 @@ app.use(cors({
 app.use("/api/auth", AuthRouter)
 
 
-app.listen(3000, ()=> {
+app.listen(process.env.PORT, ()=> {
     console.log("Server Is Listening To Port")
 })

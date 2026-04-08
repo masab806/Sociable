@@ -3,13 +3,33 @@ import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import images from '@/constants/image'
 import { Link } from 'expo-router'
+import { Controller, useForm } from 'react-hook-form'
+import { zodResolver } from "@hookform/resolvers/zod"
+import { loginSchema } from '@/schema/schema'
+import z from 'zod'
+
 
 const Login = () => {
+
+    const {
+        handleSubmit,
+        control,
+        formState: { errors }
+    } = useForm({
+        resolver: zodResolver(loginSchema)
+    })
+
+    const onFormSubmit = (data: any) => {
+        console.log(data)
+    }
+
+
     return (
         <SafeAreaView style={styles.bgView}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}
+                
             >
                 <View style={styles.headerContainer}>
                     <Text style={styles.headerTextStyle}>Sociable</Text>
@@ -25,26 +45,47 @@ const Login = () => {
                     </View>
 
                     <View style={styles.formContainer}>
-                        <View style={styles.inputWrapper}>
-                            <Text style={styles.labelText}>Email</Text>
-                            <TextInput
-                                style={styles.inputStyle}
-                                placeholder="Enter your email"
-                                placeholderTextColor="#756059"
-                            />
-                        </View>
+                        <Controller
+                            control={control}
+                            name="email"
+                            render={({ field: { onChange, onBlur, value } }) => (
+                                <View style={styles.inputWrapper}>
+                                    <Text style={styles.labelText}>Email</Text>
+                                    <TextInput
+                                        style={styles.inputStyle}
+                                        placeholder="Enter your email"
+                                        placeholderTextColor="#756059"
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                    />
+                                    {errors.email && <Text style={{ color: "red" }}>{errors.email.message}</Text>}
+                                </View>
+                            )}
+                        />
 
-                        <View style={styles.inputWrapper}>
-                            <Text style={styles.labelText}>Password</Text>
-                            <TextInput
-                                style={styles.inputStyle}
-                                placeholder="Enter your password"
-                                placeholderTextColor="#756059"
-                                secureTextEntry
-                            />
-                        </View>
+                        <Controller
+                            control={control}
+                            name="password"
+                            render={({ field: { onChange, onBlur, value } }) => (
+                                <View style={styles.inputWrapper}>
+                                    <Text style={styles.labelText}>Password</Text>
+                                    <TextInput
+                                        style={styles.inputStyle}
+                                        placeholder="Enter your password"
+                                        placeholderTextColor="#756059"
+                                        secureTextEntry
+                                        onChangeText={onChange}
+                                        onBlur={onBlur}
+                                        value={value}
+                                    />
+                                    {errors.password && <Text style={{color: "red"}}>{errors.password.message}</Text>}
+                                </View>
+                            )}
+                        />
 
-                        <TouchableOpacity style={styles.buttonStyle}>
+
+                        <TouchableOpacity onPress={handleSubmit(onFormSubmit)} style={styles.buttonStyle}>
                             <Text style={styles.buttonText}>Login</Text>
                         </TouchableOpacity>
 
