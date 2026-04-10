@@ -75,9 +75,10 @@ async function loginUser(email, password) {
             expiresIn: "1h"
         })
 
+
         return {
             success: true,
-            payload,
+            user: payload,
             token
         }
 

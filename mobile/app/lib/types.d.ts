@@ -5,7 +5,7 @@ export type UserRegisterForm = {
     confirmPassword: string
 }
 
-export type UserLoginForm = {
+export  type UserLoginForm = {
     email: string,
     password: string
 }

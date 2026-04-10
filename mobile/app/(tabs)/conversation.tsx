@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { ArrowLeft, SearchIcon, Send, UserCircle2 } from 'lucide-react-native'
 
 
-
 type Message = {
     id: number
     text: string
@@ -12,6 +11,8 @@ type Message = {
 }
 
 const ChatConversation = () => {
+
+
     const myId = 1;
     const [messages, setMessages] = useState<Message[]>([
         { id: 1, text: "Hello", senderID: 1 },

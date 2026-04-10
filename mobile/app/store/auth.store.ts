@@ -8,11 +8,11 @@ interface AuthStore {
     logout: ()=> void
 }
 
-export const useAuthStore = create<AuthStore>((set)=> ({
+export const useAuthStore = create<AuthStore>((set) => ({
     user: null,
     token: null,
-
-    setUser: (user, token)=> set({user: user, token: token}),
-
-    logout: ()=> set({user: null, token: null})
+    setUser: (user, token) => {
+        set({ user, token })
+    },
+    logout: () => set({ user: null, token: null })
 }))

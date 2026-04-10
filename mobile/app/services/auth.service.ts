@@ -4,14 +4,12 @@ import { useAuthStore } from "../store/auth.store";
 
 
 const authService = {
-    userRegister: async (data: UserRegisterForm)=> {
-        const authStore = useAuthStore.getState()
+    userRegister: async (data: UserRegisterForm) => {
         try {
             const res = await api.post('/api/auth/register', data)
-            
+
             const responseData = res.data
-            
-            authStore.setUser(responseData.user, responseData.token)
+
 
             return responseData
 
@@ -21,9 +19,18 @@ const authService = {
         }
     },
 
-    userLogin: async (data: UserLoginForm)=> {
+    userLogin: async (data: UserLoginForm) => {
         try {
             const res = await api.post('/api/auth/login', data)
+
+            const responseData = res.data
+
+            console.log(responseData)
+
+            const authStore = useAuthStore.getState()
+
+            authStore.setUser(responseData.user, responseData.token)
+
 
             return res.data
 

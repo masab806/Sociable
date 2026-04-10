@@ -1,13 +1,14 @@
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Image, TouchableOpacity, TextInput } from 'react-native'
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Image, TouchableOpacity, TextInput, ScrollView, ToastAndroid } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import images from '@/constants/image'
-import { Link } from 'expo-router'
+import { Link, router } from 'expo-router'
 import { Eye, EyeClosed } from "lucide-react-native"
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { registerSchema } from '@/schema/schema'
+import authService from '../services/auth.service'
 
 const Signup = () => {
     const [showPassword, setShowPassword] = useState<Boolean>(false)
@@ -21,133 +22,149 @@ const Signup = () => {
         resolver: zodResolver(registerSchema)
     })
 
-    const onFormSubmit = (data: any)=> {
-        console.log(data)
+    const onFormSubmit = async (data: any) => {
+        try {
+            await authService.userRegister(data);
+            ToastAndroid.show("User Registered Successfully!", ToastAndroid.SHORT)
+            router.replace("/(auth)/login")
+            console.log("The Data Submitted: ", data)
+        } catch (error) {
+            ToastAndroid.show(error?.response?.data?.message, ToastAndroid.SHORT)
+        }
     }
 
     return (
         <SafeAreaView style={styles.bgView}>
-            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
-
-                <View style={styles.headerContainer}>
-                    <Text style={styles.headerTextStyle}>Sociable</Text>
-                </View>
-
-                <View style={styles.contentContainer}>
-                    <View style={styles.imageContainer}>
-                        <Image
-                            style={styles.iconStyle}
-                            source={images.icons.userIcon}
-                            resizeMode="contain"
-                        />
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={{ flex: 1 }}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}  
+            >
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View style={styles.headerContainer}>
+                        <Text style={styles.headerTextStyle}>Sociable</Text>
                     </View>
 
-                    <View style={styles.formContainer}>
-                        <Controller
-                            control={control}
-                            name="username"
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <View style={styles.inputWrapper}>
-                                    <Text style={styles.labelText}>Username</Text>
-                                    <TextInput
-                                        style={styles.inputStyle}
-                                        placeholder="Enter your Username"
-                                        placeholderTextColor="#756059"
-                                        onChangeText={onChange}
-                                        onBlur={onBlur}
-                                        value={value}
-                                    />
-                                    {errors.username && <Text style={{ color: "red" }}>{errors.email?.message}</Text>}
-                                </View>
-                            )}
-                        />
-
-                        <Controller
-                            control={control}
-                            name="email"
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <View style={styles.inputWrapper}>
-                                    <Text style={styles.labelText}>Email</Text>
-                                    <TextInput
-                                        style={styles.inputStyle}
-                                        placeholder="Enter your email"
-                                        placeholderTextColor="#756059"
-                                        onChangeText={onChange}
-                                        onBlur={onBlur}
-                                        value={value}
-                                    />
-                                    {errors.email && <Text style={{ color: "red" }}>{errors.email.message}</Text>}
-                                </View>
-                            )}
-                        />
-
-                       <Controller
-                       control={control}
-                       name="password"
-                       render={({field: {onChange, onBlur, value}})=> (
-                         <View style={styles.inputWrapper}>
-                            <Text style={styles.labelText}>Password</Text>
-                            <View style={styles.passwordContainer}>
-                                <TextInput
-                                    style={styles.inputStyle}
-                                    placeholder="Enter your password"
-                                    placeholderTextColor="#756059"
-                                    secureTextEntry={!showPassword}
-                                    onChangeText={onChange}
-                                    onBlur={onBlur}
-                                    value={value}
-                                />
-                                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                                    {showPassword ? <EyeClosed color="#FFB59C" size={22} /> : <Eye color="#FFB59C" size={22} />}
-                                </TouchableOpacity>
-                            </View>
-                            {errors.password && <Text style={{color: "red"}}>{errors.password.message}</Text>}
+                    <View style={styles.contentContainer}>
+                        <View style={styles.imageContainer}>
+                            <Image
+                                style={styles.iconStyle}
+                                source={images.icons.userIcon}
+                                resizeMode="contain"
+                            />
                         </View>
-                       )}
-                       />
 
-                       <Controller
-                       control={control}
-                       name="confirmPassword"
-                       render={({field: {onChange, onBlur, value}})=> (
-                         <View style={styles.inputWrapper}>
-                            <Text style={styles.labelText}>Confirm Password</Text>
-                            <View style={styles.passwordContainer}>
-                                <TextInput
-                                    style={styles.inputStyle}
-                                    placeholder="Confirm your password"
-                                    placeholderTextColor="#756059"
-                                    secureTextEntry={!showConfirmPassword}
-                                    onChangeText={onChange}
-                                    onBlur={onBlur}
-                                    value={value}
-                                />
-                                <TouchableOpacity onPress={() => setshowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
-                                    {showConfirmPassword ? <EyeClosed color="#FFB59C" size={22} /> : <Eye color="#FFB59C" size={22} />}
-                                </TouchableOpacity>
+                        <View style={styles.formContainer}>
+                            <Controller
+                                control={control}
+                                name="username"
+                                render={({ field: { onChange, onBlur, value } }) => (
+                                    <View style={styles.inputWrapper}>
+                                        <Text style={styles.labelText}>Username</Text>
+                                        <TextInput
+                                            style={styles.inputStyle}
+                                            placeholder="Enter your Username"
+                                            placeholderTextColor="#756059"
+                                            onChangeText={onChange}
+                                            onBlur={onBlur}
+                                            value={value}
+                                        />
+                                        {errors.username && <Text style={{ color: "red" }}>{errors.email?.message}</Text>}
+                                    </View>
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name="email"
+                                render={({ field: { onChange, onBlur, value } }) => (
+                                    <View style={styles.inputWrapper}>
+                                        <Text style={styles.labelText}>Email</Text>
+                                        <TextInput
+                                            style={styles.inputStyle}
+                                            placeholder="Enter your email"
+                                            placeholderTextColor="#756059"
+                                            onChangeText={onChange}
+                                            onBlur={onBlur}
+                                            value={value}
+                                        />
+                                        {errors.email && <Text style={{ color: "red" }}>{errors.email.message}</Text>}
+                                    </View>
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name="password"
+                                render={({ field: { onChange, onBlur, value } }) => (
+                                    <View style={styles.inputWrapper}>
+                                        <Text style={styles.labelText}>Password</Text>
+                                        <View style={styles.passwordContainer}>
+                                            <TextInput
+                                                style={styles.inputStyle}
+                                                placeholder="Enter your password"
+                                                placeholderTextColor="#756059"
+                                                secureTextEntry={!showPassword}
+                                                onChangeText={onChange}
+                                                onBlur={onBlur}
+                                                value={value}
+                                            />
+                                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+                                                {showPassword ? <EyeClosed color="#FFB59C" size={22} /> : <Eye color="#FFB59C" size={22} />}
+                                            </TouchableOpacity>
+                                        </View>
+                                        {errors.password && <Text style={{ color: "red" }}>{errors.password.message}</Text>}
+                                    </View>
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name="confirmPassword"
+                                render={({ field: { onChange, onBlur, value } }) => (
+                                    <View style={styles.inputWrapper}>
+                                        <Text style={styles.labelText}>Confirm Password</Text>
+                                        <View style={styles.passwordContainer}>
+                                            <TextInput
+                                                style={styles.inputStyle}
+                                                placeholder="Confirm your password"
+                                                placeholderTextColor="#756059"
+                                                secureTextEntry={!showConfirmPassword}
+                                                onChangeText={onChange}
+                                                onBlur={onBlur}
+                                                value={value}
+                                            />
+                                            <TouchableOpacity onPress={() => setshowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
+                                                {showConfirmPassword ? <EyeClosed color="#FFB59C" size={22} /> : <Eye color="#FFB59C" size={22} />}
+                                            </TouchableOpacity>
+                                        </View>
+                                        {errors.confirmPassword && <Text style={{ color: "red" }}>{errors.confirmPassword.message}</Text>}
+                                    </View>
+                                )}
+                            />
+
+                            <TouchableOpacity onPress={handleSubmit(onFormSubmit)} style={styles.buttonStyle}>
+                                <Text style={styles.buttonText}>Sign Up</Text>
+                            </TouchableOpacity>
+
+                            <View style={styles.footerContainer}>
+                                <Text style={styles.footerText}>
+                                    Already Have An account?{' '}
+                                    <Link
+                                        href="/(auth)/login"
+                                        style={styles.linkText}
+                                    >
+                                        Login!
+                                    </Link>
+                                </Text>
                             </View>
-                            {errors.confirmPassword && <Text style={{color: "red"}}>{errors.confirmPassword.message}</Text>}
-                        </View>
-                       )}
-                       />
-
-                        <TouchableOpacity onPress={handleSubmit(onFormSubmit)} style={styles.buttonStyle}>
-                            <Text style={styles.buttonText}>Sign Up</Text>
-                        </TouchableOpacity>
-
-                        <View style={styles.footerContainer}>
-                            <Text style={styles.footerText}>
-                                Already Have An account?{' '}
-                                <Link
-                                    href="/(auth)/login"
-                                    style={styles.linkText}
-                                >
-                                    Login!
-                                </Link>
-                            </Text>
                         </View>
                     </View>
-                </View>
+                </ScrollView>
 
             </KeyboardAvoidingView>
         </SafeAreaView>
@@ -262,6 +279,10 @@ const styles = StyleSheet.create({
         color: '#FFB59C',
         fontWeight: '800',
         textDecorationLine: 'underline',
+    },
+    scrollContent: {
+        flexGrow: 1,  
+        paddingBottom: 50,  
     },
 })
 

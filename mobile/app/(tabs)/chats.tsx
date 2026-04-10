@@ -1,8 +1,9 @@
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, Pressable } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SearchIcon, UserCircle2 } from 'lucide-react-native'
 import { router } from 'expo-router';
+import { useAuthStore } from "@/app/store/auth.store";
 
 
 const CHAT_DATA = [
@@ -13,9 +14,19 @@ const CHAT_DATA = [
 ];
 
 const Chats = () => {
+    const { user, token, logout } = useAuthStore()
+    const [openModal, setopenModal] = useState(false)
+
+    const handleLogout = () => {
+        logout()
+        router.replace("/(auth)/login")
+    }
+
+
+
 
     const renderChatItem = ({ item }) => (
-        <Pressable onPress={()=> router.push("/(tabs)/conversation")} style={styles.chatItem}>
+        <Pressable onPress={() => router.push("/(tabs)/conversation")} style={styles.chatItem}>
             <View style={styles.avatarPlaceholder}>
                 <UserCircle2 color="#FFB59C" size={40} />
             </View>
@@ -31,24 +42,44 @@ const Chats = () => {
         </Pressable>
     );
 
+    const renderDropdown = () => (
+        <View style={styles.dropdownContainer}>
+            {/* <TouchableOpacity style={styles.dropdownItem}>
+                <Text style={styles.dropdownText}>Profile</Text>
+            </TouchableOpacity> */}
+            <View  style={styles.divider}/>
+            <TouchableOpacity onPress={handleLogout} style={styles.dropdownItem}>
+                <Text style={styles.dropdownText}>Logout</Text>
+            </TouchableOpacity>
+        </View>
+    )
+
     return (
         <SafeAreaView style={styles.bgView}>
-            <View style={styles.headerTextContainer}>
-                <Text style={styles.headerTextStyle}>Sociable</Text>
-                <TouchableOpacity><UserCircle2 style={styles.iconStyle} size={36} /></TouchableOpacity>
+            <View style={{ position: "relative", zIndex: 999 }}>
+                <View style={styles.headerTextContainer}>
+                    <Text style={styles.headerTextStyle}>Sociable</Text>
+                    <TouchableOpacity onPress={() => setopenModal(!openModal)}><View style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 5 }}>
+                        <Text style={styles.userNameText}>{user?.username}</Text>
+                        <UserCircle2 style={styles.iconStyle} size={36} />
+                    </View>
+                    </TouchableOpacity>
+
+                </View>
+                {openModal && renderDropdown()}
             </View>
 
             <View style={{ paddingHorizontal: 16, marginBottom: 10 }}>
                 <View style={styles.searchContainer}>
-                    <TextInput 
-                        placeholder='Explore' 
-                        placeholderTextColor="#756059" 
+                    <TextInput
+                        placeholder='Explore'
+                        placeholderTextColor="#756059"
                         style={styles.searchInput}
                     />
                     <SearchIcon style={{ marginRight: 10 }} color="#FFB59C" />
                 </View>
             </View>
-            
+
             <FlatList
                 data={CHAT_DATA}
                 keyExtractor={(item) => item.id}
@@ -134,6 +165,33 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 181, 156, 0.1)',
         width: '80%',
         alignSelf: 'flex-end',
+    },
+    dropdownContainer: {
+        position: "absolute",
+        borderWidth: 1.5,
+        top: 50,
+        right: 0,
+        minWidth: 160,
+        overflow: "hidden",
+        backgroundColor: "#2A221F",
+        borderRadius: 12,
+        borderColor: "#FFB59C",
+        marginRight: 12,
+        marginTop: 15,
+        transitionTimingFunction: "ease-in-out",
+        transitionDuration: '500ms'
+    },
+    dropdownItem: {
+        padding: 14
+    },
+    dropdownText: {
+        color: "#FFB59C",
+        fontSize: 14
+    },
+    divider: {
+        height: 1,
+        backgroundColor: 'rgba(255,181,156,0.2)',
+        marginHorizontal: 12
     }
 })
 
