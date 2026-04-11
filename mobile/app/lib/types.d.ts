@@ -11,6 +11,7 @@ export  type UserLoginForm = {
 }
 
 export type UserType = {
+    userId: Number,
     username: string,
     email: string,
     password: string

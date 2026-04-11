@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, Pressable } from 'react-native'
 import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { SearchIcon, UserCircle2 } from 'lucide-react-native'
+import { MessageCirclePlusIcon, MessageSquarePlus, SearchIcon, UserCircle2 } from 'lucide-react-native'
 import { router } from 'expo-router';
 import { useAuthStore } from "@/app/store/auth.store";
 
@@ -13,17 +13,23 @@ const CHAT_DATA = [
     { id: '4', name: '546456456', message: 'halo', time: 'Mar 24' },
 ];
 
+const USER_DATA = [
+    { id: 1, name: "User 1" },
+    { id: 2, name: "User 1" },
+    { id: 3, name: "User 1" },
+    { id: 4, name: "User 1" },
+]
+
 const Chats = () => {
     const { user, token, logout } = useAuthStore()
     const [openModal, setopenModal] = useState(false)
+    const [openAddConv, setopenAddConv] = useState(false)
+    const [isClicked, setisClicked] = useState(false)
 
     const handleLogout = () => {
         logout()
         router.replace("/(auth)/login")
     }
-
-
-
 
     const renderChatItem = ({ item }) => (
         <Pressable onPress={() => router.push("/(tabs)/conversation")} style={styles.chatItem}>
@@ -44,50 +50,96 @@ const Chats = () => {
 
     const renderDropdown = () => (
         <View style={styles.dropdownContainer}>
-            {/* <TouchableOpacity style={styles.dropdownItem}>
-                <Text style={styles.dropdownText}>Profile</Text>
-            </TouchableOpacity> */}
-            <View  style={styles.divider}/>
+            <View style={styles.divider} />
             <TouchableOpacity onPress={handleLogout} style={styles.dropdownItem}>
                 <Text style={styles.dropdownText}>Logout</Text>
             </TouchableOpacity>
         </View>
     )
 
-    return (
-        <SafeAreaView style={styles.bgView}>
-            <View style={{ position: "relative", zIndex: 999 }}>
-                <View style={styles.headerTextContainer}>
-                    <Text style={styles.headerTextStyle}>Sociable</Text>
-                    <TouchableOpacity onPress={() => setopenModal(!openModal)}><View style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 5 }}>
-                        <Text style={styles.userNameText}>{user?.username}</Text>
-                        <UserCircle2 style={styles.iconStyle} size={36} />
-                    </View>
-                    </TouchableOpacity>
+    const renderUser = ({ item }: { item: { id: number; name: string } }) => (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 8 }}>
+            <UserCircle2 color="#FFB59C" size={36} />
+            <Text style={{ color: "#FFB59C", fontSize: 16 }}>{item?.name}</Text>
+            <View style={{ display: "flex", alignItems: "flex-end", width: "60%" }}><MessageSquarePlus color="#FFB5" /></View>
+        </View>
+    )
 
-                </View>
-                {openModal && renderDropdown()}
-            </View>
-
-            <View style={{ paddingHorizontal: 16, marginBottom: 10 }}>
-                <View style={styles.searchContainer}>
-                    <TextInput
-                        placeholder='Explore'
-                        placeholderTextColor="#756059"
-                        style={styles.searchInput}
-                    />
-                    <SearchIcon style={{ marginRight: 10 }} color="#FFB59C" />
-                </View>
-            </View>
-
-            <FlatList
-                data={CHAT_DATA}
-                keyExtractor={(item) => item.id}
-                renderItem={renderChatItem}
-                contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
-                ItemSeparatorComponent={() => <View style={styles.separator} />}
+    const renderAddConvo = () => (
+        <View style={styles.modalBackdrop}>
+            <Pressable
+                style={[StyleSheet.absoluteFill, { zIndex: 0 }]}
+                onPress={() => setisClicked(false)}
             />
-        </SafeAreaView>
+            <View style={[styles.AddConversationContainer, { zIndex: 1 }]}>
+                <View style={{ width: "100%", marginBottom: 12 }}>
+                    <View style={styles.InsideSearchContainer}>
+                        <TextInput
+                            placeholder='Explore'
+                            placeholderTextColor="#756059"
+                            style={styles.searchInput}
+                        />
+                        <SearchIcon style={{ marginRight: 10 }} color="#FFB59C" />
+                    </View>
+                </View>
+
+                <FlatList
+                    data={USER_DATA}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={renderUser}
+                    style={{ width: "100%", flex: 1 }}
+                    contentContainerStyle={{ paddingBottom: 10 }}
+                    ItemSeparatorComponent={() => <View style={styles.separator} />}
+                />
+            </View>
+        </View>
+    )
+
+
+    return (
+        <View style={{ flex: 1 }}>
+            <SafeAreaView style={styles.bgView}>
+                <View style={{ position: "relative", zIndex: 999 }}>
+                    <View style={styles.headerTextContainer}>
+                        <Text style={styles.headerTextStyle}>Sociable</Text>
+                        <TouchableOpacity onPress={() => setopenModal(!openModal)}>
+                            <View style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 5 }}>
+                                <Text style={styles.userNameText}>{user?.username}</Text>
+                                <UserCircle2 style={styles.iconStyle} size={36} />
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                    {openModal && renderDropdown()}
+                </View>
+
+                <View style={{ paddingHorizontal: 16, marginBottom: 10 }}>
+                    <View style={styles.searchContainer}>
+                        <TextInput
+                            placeholder='Explore'
+                            placeholderTextColor="#756059"
+                            style={styles.searchInput}
+                        />
+                        <SearchIcon style={{ marginRight: 10 }} color="#FFB59C" />
+                    </View>
+                </View>
+
+                <FlatList
+                    data={CHAT_DATA}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderChatItem}
+                    contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
+                    ItemSeparatorComponent={() => <View style={styles.separator} />}
+                />
+
+                <TouchableOpacity onPress={() => setisClicked(!isClicked)} style={styles.ChatAddContainer}>
+
+                    <MessageCirclePlusIcon color="#201A18" />
+
+                </TouchableOpacity>
+            </SafeAreaView>
+
+            {isClicked && renderAddConvo()}
+        </View>
     )
 }
 
@@ -178,8 +230,6 @@ const styles = StyleSheet.create({
         borderColor: "#FFB59C",
         marginRight: 12,
         marginTop: 15,
-        transitionTimingFunction: "ease-in-out",
-        transitionDuration: '500ms'
     },
     dropdownItem: {
         padding: 14
@@ -192,7 +242,48 @@ const styles = StyleSheet.create({
         height: 1,
         backgroundColor: 'rgba(255,181,156,0.2)',
         marginHorizontal: 12
-    }
+    },
+    ChatAddContainer: {
+        position: "absolute",
+        right: 15,
+        bottom: 80,
+        padding: 15,
+        backgroundColor: "#FFB59C",
+        borderBottomRightRadius: 10,
+        borderTopRightRadius: 10,
+        borderTopLeftRadius: 10
+    },
+    modalBackdrop: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(32, 26, 24, 0.85)",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 1000,
+        elevation: 10,
+    },
+    AddConversationContainer: {
+        width: "85%",
+        height: "60%",
+        flex: 0,
+        backgroundColor: "#2A221F",
+        borderRadius: 16,
+        borderWidth: 1.5,
+        borderColor: "#FFB59C",
+        padding: 16,
+    },
+      InsideSearchContainer: {
+        height: 50,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 15,
+        backgroundColor: "#2A221F",
+        borderBottomWidth: 1.5,
+        borderBottomColor: "#FFB59C"
+    },
 })
 
 export default Chats

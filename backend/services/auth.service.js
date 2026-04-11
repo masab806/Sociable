@@ -67,6 +67,7 @@ async function loginUser(email, password) {
         }
 
         const payload = {
+            userId: existingUser.id,
             username: existingUser.username,
             email: existingUser.email
         }

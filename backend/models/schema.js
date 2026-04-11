@@ -1,5 +1,6 @@
 
-const {pgTable, serial, varchar, text} = require("drizzle-orm/pg-core")
+const { integer } = require("drizzle-orm/pg-core")
+const {pgTable, serial, varchar, text, timestamp} = require("drizzle-orm/pg-core")
 
 const user = pgTable("users", {
     id: serial("id").primaryKey(),
@@ -8,6 +9,35 @@ const user = pgTable("users", {
     password: text("password").notNull()
 })
 
+const conversation = pgTable("conversations", {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").references(()=> user.id),
+    conversationName: varchar("conversation_name").notNull(),
+})
+
+const conversationParticipants = pgTable("conversation_participants", {
+    id: serial("id").primaryKey(),
+    conversationId: integer("conversation_id").references(() => conversation.id),
+    userId: integer("user_id").references(() => user.id),
+    joinedAt: timestamp("joined_at").defaultNow()
+})
+
+
+
+const messages = pgTable("messages", {
+    id: serial("id").primaryKey(),
+    messageText: text("message"),
+    conversationId: integer("conversation_id").references(()=> conversation.id),
+    userId: integer("user_id").references(()=> user.id),
+    senderId: integer("sender_id").notNull()
+})
+
+
+
+
 module.exports = {
-    user
+    user,
+    conversation,
+    messages,
+    conversationParticipants
 }

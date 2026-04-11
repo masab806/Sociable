@@ -1,11 +1,11 @@
-import {create} from "zustand"
+import { create } from "zustand"
 import { UserType } from "../lib/types"
 
 interface AuthStore {
     user: UserType | null,
     token: string | null,
     setUser: (user: UserType, token: string) => void
-    logout: ()=> void
+    logout: () => void
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
