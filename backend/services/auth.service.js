@@ -83,8 +83,6 @@ async function loginUser(email, password) {
             token
         }
 
-
-
     } catch (error) {
         console.log("An Error Occured! ", error)   
     }

@@ -11,7 +11,6 @@ const user = pgTable("users", {
 
 const conversation = pgTable("conversations", {
     id: serial("id").primaryKey(),
-    userId: integer("user_id").references(()=> user.id),
     conversationName: varchar("conversation_name").notNull(),
 })
 
@@ -20,18 +19,15 @@ const conversationParticipants = pgTable("conversation_participants", {
     conversationId: integer("conversation_id").references(() => conversation.id),
     userId: integer("user_id").references(() => user.id),
     joinedAt: timestamp("joined_at").defaultNow()
-})
-
-
+});
 
 const messages = pgTable("messages", {
     id: serial("id").primaryKey(),
     messageText: text("message"),
-    conversationId: integer("conversation_id").references(()=> conversation.id),
-    userId: integer("user_id").references(()=> user.id),
-    senderId: integer("sender_id").notNull()
-})
-
+    conversationId: integer("conversation_id").references(() => conversation.id),
+    senderId: integer("sender_id").references(() => user.id),
+    createdAt: timestamp("created_at").defaultNow()
+});
 
 
 

@@ -4,7 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { MessageCirclePlusIcon, MessageSquarePlus, SearchIcon, UserCircle2 } from 'lucide-react-native'
 import { router } from 'expo-router';
 import { useAuthStore } from "@/app/store/auth.store";
-
+import { useSearchUsers } from '../lib/hooks/UserHook';
+import useDebounce from '../lib/utils/debounce';
+import conversationService from '../services/conversation.service';
+import { useConversationSearch, useConvoSearch } from '../lib/hooks/ConversationHook';
 
 const CHAT_DATA = [
     { id: '1', name: '143', message: 'See ', time: '2:00 PM' },
@@ -13,18 +16,39 @@ const CHAT_DATA = [
     { id: '4', name: '546456456', message: 'halo', time: 'Mar 24' },
 ];
 
-const USER_DATA = [
-    { id: 1, name: "User 1" },
-    { id: 2, name: "User 1" },
-    { id: 3, name: "User 1" },
-    { id: 4, name: "User 1" },
-]
 
 const Chats = () => {
     const { user, token, logout } = useAuthStore()
     const [openModal, setopenModal] = useState(false)
-    const [openAddConv, setopenAddConv] = useState(false)
     const [isClicked, setisClicked] = useState(false)
+    const [search, setSearch] = useState("")
+    const [conversationSearch, setConversationSearch] = useState("")
+
+    const debouncedSearch = useDebounce(search, 500)
+    const debouncedConversation = useDebounce(conversationSearch, 500)
+
+    const { data: searchData, isLoading, isError, error } = useSearchUsers(debouncedSearch)
+    const { data: conversationData } = useConversationSearch()
+    const { data: searchedConversations } = useConvoSearch(debouncedConversation)
+
+
+    const addConversation = (
+        userId: number | undefined,
+        participantId: number | undefined,
+        username: string
+    ) => {
+        if (!userId || !participantId) {
+            console.log("Missing IDs", { userId, participantId });
+            return;
+        }
+
+        return conversationService.addConversation(
+            userId,
+            participantId,
+            username
+        );
+    };
+
 
     const handleLogout = () => {
         logout()
@@ -38,11 +62,10 @@ const Chats = () => {
             </View>
             <View style={styles.chatInfo}>
                 <View style={styles.chatHeader}>
-                    <Text style={styles.userNameText}>{item.name}</Text>
-                    <Text style={styles.timeText}>{item.time}</Text>
+                    <Text style={styles.userNameText}>{item?.conversationName}</Text>
                 </View>
                 <Text style={styles.messageText} numberOfLines={1}>
-                    {item.message}
+                    {item.message || "Start Conversation"}
                 </Text>
             </View>
         </Pressable>
@@ -57,13 +80,23 @@ const Chats = () => {
         </View>
     )
 
-    const renderUser = ({ item }: { item: { id: number; name: string } }) => (
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 8 }}>
-            <UserCircle2 color="#FFB59C" size={36} />
-            <Text style={{ color: "#FFB59C", fontSize: 16 }}>{item?.name}</Text>
-            <View style={{ display: "flex", alignItems: "flex-end", width: "60%" }}><MessageSquarePlus color="#FFB5" /></View>
-        </View>
-    )
+    const renderUser = ({ item }: { item: { userId: number; username: string } }) => {
+        console.log(item)
+        return (
+
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 8 }}>
+                <UserCircle2 color="#FFB59C" size={36} />
+                <Text style={{ color: "#FFB59C", fontSize: 16 }}>{item?.username}</Text>
+                <View style={{ display: "flex", alignItems: "flex-end", justifyContent: "flex-end", width: 100 }}>
+                    <TouchableOpacity
+                        onPress={() => addConversation(user?.userId, item?.userId, item?.username)}
+                    >
+                        <MessageSquarePlus color="#FFB5" />
+                    </TouchableOpacity>
+                </View>
+            </View>
+        )
+    }
 
     const renderAddConvo = () => (
         <View style={styles.modalBackdrop}>
@@ -78,19 +111,30 @@ const Chats = () => {
                             placeholder='Explore'
                             placeholderTextColor="#756059"
                             style={styles.searchInput}
+                            value={search}
+                            onChangeText={setSearch}
                         />
                         <SearchIcon style={{ marginRight: 10 }} color="#FFB59C" />
                     </View>
                 </View>
 
-                <FlatList
-                    data={USER_DATA}
-                    keyExtractor={(item) => item.id.toString()}
-                    renderItem={renderUser}
-                    style={{ width: "100%", flex: 1 }}
-                    contentContainerStyle={{ paddingBottom: 10 }}
-                    ItemSeparatorComponent={() => <View style={styles.separator} />}
-                />
+                {isLoading ? (
+                    <View style={{ padding: 20 }}>
+                        <Text style={{ color: "#FFB59C" }}>Loading...</Text>
+                    </View>
+                ) : isError ? (
+                    <View>
+                        <Text style={{ color: "red" }}>{error?.message || "Something Went Wrong!"}</Text>
+                    </View>
+                ) : (
+                    <FlatList
+                        data={searchData?.data || []}
+                        keyExtractor={(item) => item.userId.toString()}
+                        renderItem={renderUser}
+                    />
+
+                )}
+
             </View>
         </View>
     )
@@ -118,13 +162,15 @@ const Chats = () => {
                             placeholder='Explore'
                             placeholderTextColor="#756059"
                             style={styles.searchInput}
+                            value={conversationSearch}
+                            onChangeText={setConversationSearch}
                         />
                         <SearchIcon style={{ marginRight: 10 }} color="#FFB59C" />
                     </View>
                 </View>
 
                 <FlatList
-                    data={CHAT_DATA}
+                    data={conversationSearch.trim().length > 0 ? searchedConversations : conversationData || []}
                     keyExtractor={(item) => item.id}
                     renderItem={renderChatItem}
                     contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
@@ -275,7 +321,7 @@ const styles = StyleSheet.create({
         borderColor: "#FFB59C",
         padding: 16,
     },
-      InsideSearchContainer: {
+    InsideSearchContainer: {
         height: 50,
         flexDirection: "row",
         alignItems: "center",

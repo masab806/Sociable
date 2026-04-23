@@ -2,10 +2,18 @@ import { Stack } from "expo-router";
 import { useState, useEffect } from "react";
 import { useFonts } from "expo-font";
 import SplashScreen from "./components/SplashScreen";
+import {
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
+
+const queryClient = new QueryClient()
 
 export default function RootLayout() {
     const [timerLoading, setTimerLoading] = useState(true);
 
+
+    
     const [fontsLoaded, fontError] = useFonts({
         'Poppins': require('@/assets/fonts/poppins.ttf'),
         'Roboto': require('@/assets/fonts/roboto.ttf'),
@@ -25,9 +33,11 @@ export default function RootLayout() {
     }
 
     return (
+        <QueryClientProvider client={queryClient}>
         <Stack screenOptions={{headerShown: false}}>
             <Stack.Screen name="(auth)/login" options={{headerShown: false}}/>
             <Stack.Screen name="(tabs)/chats" options={{ headerShown: false }} />
         </Stack>
+        </QueryClientProvider>
     );
 }
