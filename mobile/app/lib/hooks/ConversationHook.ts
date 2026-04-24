@@ -24,3 +24,11 @@ export const FetchConvoById = (conversationId: number)=> {
         enabled: !!conversationId
     })
 }
+
+export const fetchMessages = (conversationId: number)=> {
+    return useQuery({
+        queryKey: ['fetch-messages', conversationId],
+        queryFn: ()=> conversationService.fetchConversationMessages(conversationId),
+        enabled:!!conversationId
+    })
+}

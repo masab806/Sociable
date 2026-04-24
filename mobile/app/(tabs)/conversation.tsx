@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, TextInput, KeyboardAvoidingView, Platform } from 'react-native'
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ArrowLeft, SearchIcon, Send, UserCircle2 } from 'lucide-react-native'
 import { useLocalSearchParams } from 'expo-router'

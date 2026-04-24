@@ -88,6 +88,25 @@ const conversationService = {
             console.log("Error In Fetching Conversation By Id: ", error)
             throw error
         }
+    },
+
+    fetchConversationMessages: async (conversationId: number)=>{
+        try {
+            const token = useAuthStore.getState().token
+
+            const  res = await api.get(`/api/messages/getMessages?conversationId=${conversationId}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+
+            const responseData = res.data
+
+            return responseData
+        } catch (error) {
+            console.log("Error In Fetching Conversation Messages: ", error)
+            throw error
+        }
     }
 
 }

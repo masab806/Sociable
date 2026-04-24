@@ -5,6 +5,9 @@ const cors = require("cors")
 const AuthRouter = require("./routes/auth.route")
 const ConversationRouter = require("./routes/coversation.route")
 const UserRouter = require("./routes/user.route")
+const MessageRouter = require("./routes/message.route")
+const { createServer } = require("http")
+const { initSocket } = require("./services/socket.service")
 
 dotenv.config()
 
@@ -13,13 +16,19 @@ app.use(cors({
 }))
 
 app.use(express.json())
-app.use(express.urlencoded({extended: true}))
+app.use(express.urlencoded({ extended: true }))
 
+
+const server = createServer(app)
+
+initSocket(server)
 
 app.use("/api/auth", AuthRouter)
 app.use("/api/conversation", ConversationRouter)
 app.use("/api/user", UserRouter)
+app.use("/api/message", MessageRouter)
 
-app.listen(process.env.PORT, ()=> {
+
+server.listen(process.env.PORT, () => {
     console.log("Server Is Listening To PORT")
 })
