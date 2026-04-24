@@ -2,6 +2,8 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, TextInp
 import React, { useRef, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ArrowLeft, SearchIcon, Send, UserCircle2 } from 'lucide-react-native'
+import { useLocalSearchParams } from 'expo-router'
+import { FetchConvoById } from '../lib/hooks/ConversationHook'
 
 
 type Message = {
@@ -10,9 +12,11 @@ type Message = {
     senderID: number
 }
 
+
 const ChatConversation = () => {
-
-
+    const {conversationId} = useLocalSearchParams()
+    const id = Number(conversationId)
+    const {data: conversationData, isLoading: conversationLoading} = FetchConvoById(id)
     const myId = 1;
     const [messages, setMessages] = useState<Message[]>([
         { id: 1, text: "Hello", senderID: 1 },
@@ -49,13 +53,23 @@ const ChatConversation = () => {
     }
 
     const flatListRef = useRef<any>(null);
+    
+    if(conversationLoading){
+          return (
+        <SafeAreaView style={styles.bgView}>
+            <Text style={{ color: "#FFB59C", padding: 20 }}>
+                Loading...
+            </Text>
+        </SafeAreaView>
+    );
+    }
 
     return (
         <SafeAreaView style={styles.bgView}>
             <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" keyboardVerticalOffset={0}>
                 <View style={styles.headerTextContainer}>
                     <UserCircle2 size={36} color="#FFB59C" />
-                    <Text style={styles.headerTextStyle}>Username</Text>
+                    <Text style={styles.headerTextStyle}>{conversationData?.conversationName || "Username"}</Text>
                 </View>
 
                 <View style={{ flex: 1 }}>
@@ -64,7 +78,7 @@ const ChatConversation = () => {
                         data={messages}
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={renderChat}
-                        contentContainerStyle={{paddingBottom: 10}}
+                        contentContainerStyle={{ paddingBottom: 10 }}
                         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
                     />
                 </View>

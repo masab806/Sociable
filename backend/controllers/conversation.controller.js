@@ -1,10 +1,11 @@
-const { GetAllUserConversations, AddConversation, SearchConversationByName } = require("../services/conversation.service")
+const { eq } = require("drizzle-orm")
+const { db } = require("../config/db")
+const { conversation } = require("../models/schema")
+const { GetAllUserConversations, AddConversation, SearchConversationByName, GetConversationById } = require("../services/conversation.service")
 
 async function GetUserConversations(req, res) {
     try {
         const { userId } = req.user
-
-        console.log("User Id is: ", userId)
 
         if (!userId) {
             return res.status(400).json({
@@ -13,8 +14,6 @@ async function GetUserConversations(req, res) {
         }
 
         const result = await GetAllUserConversations(userId)
-
-        console.log(result)
 
         if (!result?.success) {
             return res.status(401).json(result)
@@ -68,8 +67,33 @@ async function AddUserConversation(req, res) {
     }
 }
 
+async function FetchConversationById(req,res) {
+    try {
+        const {conversationId} = req.query
+
+        if(!conversationId){
+            return res.status(401).json({
+                message: "No Conversation Id!"
+            })
+        }
+
+        const result = await GetConversationById(conversationId)
+
+        if(!result.success){
+            return res.status(401).json(result)
+        }
+
+        return res.status(200).json(result)
+
+    
+    } catch (error) {
+        console.log("Error In Fetching Conversation (Controller): ", error)
+    }
+}
+
 module.exports = {
     GetUserConversations,
     AddUserConversation,
-    SearchConversations
+    SearchConversations,
+    FetchConversationById
 }

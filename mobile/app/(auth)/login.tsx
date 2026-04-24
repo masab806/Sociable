@@ -121,8 +121,6 @@ const Login = () => {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
-            <Link href="/(tabs)/chats">Go To Home</Link>
-
         </SafeAreaView>
     )
 }

@@ -56,7 +56,10 @@ const Chats = () => {
     }
 
     const renderChatItem = ({ item }) => (
-        <Pressable onPress={() => router.push("/(tabs)/conversation")} style={styles.chatItem}>
+        <Pressable onPress={() => router.push({
+            pathname: "/(tabs)/conversation",
+            params: { conversationId: item?.id }
+        })} style={styles.chatItem}>
             <View style={styles.avatarPlaceholder}>
                 <UserCircle2 color="#FFB59C" size={40} />
             </View>

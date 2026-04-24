@@ -16,3 +16,11 @@ export const useConvoSearch = (query: string)=> {
         staleTime: 1000 * 60 * 5
     })
 }
+
+export const FetchConvoById = (conversationId: number)=> {
+    return useQuery({
+        queryKey: ['fetch-conversation', conversationId],
+        queryFn: ()=> conversationService.fetchConversationById(conversationId),
+        enabled: !!conversationId
+    })
+}

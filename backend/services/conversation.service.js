@@ -141,8 +141,38 @@ async function SearchConversationByName(userId, query) {
     }
 }
 
+
+async function GetConversationById(conversationId) {
+    try {
+        const existingConversation = await db
+        .select()
+        .from(conversation)
+        .where(eq(conversation.id, conversationId))
+        .limit(1)
+        .then(r => r[0])
+
+        if(!existingConversation){
+            return {
+                success: false,
+                message: "No Conversation Found!"
+            }
+        }
+
+        return {
+            success: true,
+            data: existingConversation
+        }
+
+
+
+    } catch (error) {
+        console.log("Error In Getting Conversation By Id (Service): ", error)
+    }
+}
+
 module.exports = {
     AddConversation,
     GetAllUserConversations,
-    SearchConversationByName
+    SearchConversationByName,
+    GetConversationById
 }
