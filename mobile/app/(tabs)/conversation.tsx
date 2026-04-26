@@ -3,65 +3,134 @@ import React, { useEffect, useRef, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ArrowLeft, SearchIcon, Send, UserCircle2 } from 'lucide-react-native'
 import { useLocalSearchParams } from 'expo-router'
-import { FetchConvoById } from '../lib/hooks/ConversationHook'
+import { FetchConvoById, fetchMessages } from '../lib/hooks/ConversationHook'
+import socketService from '../services/socket.service'
+import { useAuthStore } from '../store/auth.store'
 
 
 type Message = {
-    id: number
-    text: string
-    senderID: number
+    id: string;
+    messageText: string;
+    senderId: number;
 }
 
 
 const ChatConversation = () => {
-    const {conversationId} = useLocalSearchParams()
-    const id = Number(conversationId)
-    const {data: conversationData, isLoading: conversationLoading} = FetchConvoById(id)
-    const myId = 1;
-    const [messages, setMessages] = useState<Message[]>([
-        { id: 1, text: "Hello", senderID: 1 },
-        { id: 2, text: "Hello 2", senderID: 3 },
-    ])
+    const { conversationId } = useLocalSearchParams()
+    const ConvoId = Number(conversationId)
+    const { data: conversationData, isLoading: conversationLoading } = FetchConvoById(ConvoId)
+    const [messages, setMessages] = useState<Message[]>([])
     const [inputText, setInputText] = useState("");
+    const { data: allMessages, isLoading: messageLoading } = fetchMessages(ConvoId)
+    const { user } = useAuthStore()
+    const myId = user?.userId ?? 0
+
+    if (!myId) return null
+
+
+    useEffect(() => {
+        if (allMessages) {
+            const formatted = allMessages.map((msg) => ({
+                id: msg.id.toString(),
+                messageText: msg.messageText,
+                senderId: msg.senderId
+            }))
+
+            setMessages(formatted)
+        }
+    }, [allMessages])
+
 
     const sendMessage = () => {
         if (inputText.trim() === "") return
 
         const newMessage = {
-            id: messages.length + 1,
-            text: inputText.trim(),
-            senderID: myId
+            message: inputText.trim(),
+            senderId: myId,
+            conversationId: ConvoId
         }
 
-        setMessages(prev => [...prev, newMessage])
+
+        socketService.sendMessage(newMessage, (res) => {
+            console.log("SERVER ACK: ", res)
+
+            if (!res.success) {
+                console.log(res.message);
+                return;
+            }
+
+        })
+
         setInputText("")
     }
 
-    const renderChat = ({ item }) => {
-        return (
-            <View style={{ display: "flex", marginTop: 5, alignItems: item.senderID === myId ? "flex-end" : "flex-start", padding: 10 }}>
-                {item.senderID !== myId ? (
-                    <View style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 5 }}>
-                        <UserCircle2 size={32} color="#FFB59C" />
-                        <Text style={{ backgroundColor: "#FFB59C", width: "auto", padding: 10, borderRadius: 100, textAlign: item.senderID === myId ? "left" : "right" }}>{item.text}</Text>
-                    </View>
+    useEffect(() => {
+        try {
+            socketService.connectSocket()
 
-                ) : <Text style={{ backgroundColor: "#FFB59C", width: "auto", padding: 10, borderRadius: 100, textAlign: item.senderID === myId ? "left" : "right" }}>{item.text}</Text>
-                }
+            socketService.joinConversation(ConvoId)
+
+            const handler = (msg) => {
+                setMessages(prev => [
+                    ...prev,
+                    {
+                        id: msg.id.toString(),
+                        messageText: msg.messageText,
+                        senderId: msg.senderId
+                    }
+                ])
+            }
+
+            socketService.onNewMessage(handler)
+
+
+            return () => {
+                socketService.off("newMessage")
+            }
+
+        } catch (error) {
+            console.log("Error While Joining Conversation: ", error)
+        }
+    }, [ConvoId])
+
+    useEffect(() => {
+        flatListRef.current?.scrollToEnd({ animated: true })
+    }, [messages])
+
+
+    const renderChat = ({ item }: { item: Message }) => {
+        return (
+            <View
+                style={{
+                    marginTop: 5,
+                    alignItems:
+                        item.senderId === myId ? "flex-end" : "flex-start",
+                    padding: 10,
+                }}
+            >
+                <Text
+                    style={{
+                        backgroundColor: "#FFB59C",
+                        padding: 10,
+                        borderRadius: 100,
+                    }}
+                >
+                    {item.messageText}
+                </Text>
             </View>
-        )
-    }
+        );
+    };
 
     const flatListRef = useRef<any>(null);
-    
-    if(conversationLoading){
-          return (
-        <SafeAreaView style={styles.bgView}>
-            <Text style={{ color: "#FFB59C", padding: 20 }}>
-                Loading...
-            </Text>
-        </SafeAreaView>
-    );
+
+    if (conversationLoading) {
+        return (
+            <SafeAreaView style={styles.bgView}>
+                <Text style={{ color: "#FFB59C", padding: 20 }}>
+                    Loading...
+                </Text>
+            </SafeAreaView>
+        );
     }
 
     return (
@@ -76,10 +145,11 @@ const ChatConversation = () => {
                     <FlatList
                         ref={flatListRef}
                         data={messages}
-                        keyExtractor={(item) => item.id.toString()}
+                        keyExtractor={(item) => item.id}
                         renderItem={renderChat}
                         contentContainerStyle={{ paddingBottom: 10 }}
                         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                        extraData={messages}
                     />
                 </View>
 

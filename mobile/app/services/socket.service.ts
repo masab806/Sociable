@@ -1,51 +1,66 @@
-import {io} from "socket.io-client"
+import { io } from "socket.io-client"
 import { useAuthStore } from "../store/auth.store"
 
 let socket = null
 
 const socketService = {
-    connectSocket: ()=> {
-        if(socket?.connected) return socket
+    connectSocket: () => {
+        if (socket?.connected) return socket
 
         const token = useAuthStore.getState().token
 
-        socket = io("http://localhost:3000", {
+        socket = io("http://192.168.100.17:3000", {
             auth: {
                 token
             },
             forceNew: true
         })
 
-        socket.on("connect", ()=> {
+        socket.on("connect", () => {
             console.log("Connected!", socket.id)
         })
 
-        socket.on("disconnect", (reason)=> {
+        socket.on("disconnect", (reason) => {
             console.log("Disconnected: ", reason)
         })
 
-        socket.on("error", (error)=>{
+        socket.on("error", (error) => {
             console.log("Socket Error: ", error)
         })
 
         return socket;
     },
 
-    getSocket: ()=> socket,
+    getSocket: () => socket,
 
-    joinConversation: (conversationId: number)=> {
-        if(!socket) return
+    joinConversation: (conversationId: number) => {
+        if (!socket) return
 
-        socket.emit("joinConversation", {conversationId})
+        socket.emit("joinConversation", { conversationId })
     },
 
-    sendMessage: (data)=>{
+    sendMessage: (data, callback) => {
+        if (!socket) return
+
+        socket.emit("sendMessage", data, callback)
+    },
+
+    off: (event) => {
+        if (!socket) return;
+
+        socket.off(event);
+    },
+
+    onNewMessage: (callback)=>{
         if(!socket) return
 
-        socket.emit("sendMessage", data)
+        socket.on("newMessage", callback)
     }
+};
 
     
 
 
-}
+
+
+export default socketService

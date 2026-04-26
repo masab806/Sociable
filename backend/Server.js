@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true }))
 
 const server = createServer(app)
 
-initSocket(server)
+initSocket({server})
 
 app.use("/api/auth", AuthRouter)
 app.use("/api/conversation", ConversationRouter)

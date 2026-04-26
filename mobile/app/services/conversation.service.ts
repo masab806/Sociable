@@ -94,13 +94,13 @@ const conversationService = {
         try {
             const token = useAuthStore.getState().token
 
-            const  res = await api.get(`/api/messages/getMessages?conversationId=${conversationId}`, {
+            const  res = await api.get(`/api/message/getMessages?conversationId=${conversationId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             })
 
-            const responseData = res.data
+            const responseData = res.data.messages
 
             return responseData
         } catch (error) {

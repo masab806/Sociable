@@ -70,6 +70,7 @@ async function AddUserConversation(req, res) {
 async function FetchConversationById(req,res) {
     try {
         const {conversationId} = req.query
+        const {userId} = req.user
 
         if(!conversationId){
             return res.status(401).json({
@@ -77,7 +78,7 @@ async function FetchConversationById(req,res) {
             })
         }
 
-        const result = await GetConversationById(conversationId)
+        const result = await GetConversationById(conversationId, userId)
 
         if(!result.success){
             return res.status(401).json(result)

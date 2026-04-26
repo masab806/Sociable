@@ -19,9 +19,17 @@ const initSocket = ({ server }) => {
             console.log(`User Joined Conversation ${conversationId}`)
         })
 
-        socket.on("sendMessage", async (data) => {
+        socket.on("sendMessage", async (data, callback) => {
+            console.log("RECEIVED DATA:", data);
             try {
                 const { senderId, conversationId, message } = data
+
+                if (!message || message.trim() === "") {
+                    return callback?.({
+                        success: false,
+                        message: "Empty message not allowed"
+                    });
+                }
 
                 const result = await SendMessage(message, senderId, conversationId)
 
@@ -29,10 +37,16 @@ const initSocket = ({ server }) => {
                     return socket.emit("errorMessage", result.message)
                 }
 
-                socket.to(`conversation_${conversationId}`).emit(
+                io.to(`conversation_${conversationId}`).emit(
                     "newMessage",
                     result.message
                 )
+
+                callback?.({
+                    success: true,
+                    message: result.message
+                })
+
             } catch (error) {
                 console.log("Socket sendMessage Error: ", error)
             }
