@@ -24,5 +24,5 @@ Supports:
 - Express.js
 - Socket.IO
 - Drizzle ORM
-- PostgreSQL (or your DB)
+- PostgreSQL 
 
